@@ -98,6 +98,67 @@ def find_tag( tag_name, spr_items ):
                 return item
 
 
+
+class JiraToSprintlyConverter():
+    def __init__(self,user_map):
+        self.user_map = user_map
+
+    def convert_issuetype(self,jira_issue):
+        if len(jira_issue.raw['fields']['subtasks']) > 0:
+            return 'story'
+
+        issuetype = jira_issue.raw['fields']['issuetype']['name']
+        type_lookup = { 
+           'epic'        :'story',
+           'new feature' :'task',
+           'bug'         :'defect',
+           'task'        :'task',
+           'sub-task'    :'task',
+            #:'test',
+        }
+        
+        return type_lookup[issuetype.lower()]
+    
+    def convert_status(self, jira_issue):
+        status = jira_issue.raw['fields']['status']['name']
+        status_lookup = { 
+            'open'  : 'backlog',
+            'to do' : 'backlog',
+            'done'  : 'completed',
+            'in progress' : 'in-progress',
+            #:'in-progress',
+            #:'completed',
+            #:'accpted',
+        }
+        
+        return status_lookup[status.lower()]
+    
+    def lookup_person(self, email_address):
+        try:
+            return self.user_map[email_address].id
+        except KeyError:
+            return email_address
+    
+    def convert_to_sprintly(self, jira_issue ):
+        jira_fields = jira_issue.raw['fields']
+
+        reporter = self.lookup_person(jira_fields['reporter']['emailAddress'])
+       
+        spr_data = {} 
+        spr_data['type']        = self.convert_issuetype( jira_issue )
+        spr_data['title']       = jira_issue.raw['fields']['summary']
+        #spr_data['who']
+        #spr_data['what']
+        #spr_data['why']
+        spr_data['description'] = jira_fields['description']
+        #spr_data['score']       
+        spr_data['status']      = self.convert_status(   jira_issue   )
+        spr_data['assigned_to'] = self.lookup_person( jira_fields['assignee']['emailAddress'] )
+        spr_data['tags']        = ','.join( [jira_issue.key, 'reporter-%s'%reporter] )
+
+
+        return spr_data
+
 class JiraToSprintlyImporter():
 
     def __init__(self, jira_auth, sprintly_auth):
@@ -195,6 +256,11 @@ class JiraToSprintlyImporter():
                 print "Mapping for jira proj [%s] is [%s]"%(jir_proj_name,spr_prod_name) 
                 spr_prod = self.spr_prods[spr_prod_name]
 
+
+            spr_people     = spr_prod.people()
+            spr_people_map = map_with( spr_people, get_key=lambda x:x.email )
+            converter      = JiraToSprintlyConverter( spr_people_map )
+
             jir_proj = self.jir_projs[jir_proj_name]
             print "Downloading JIRA items for [%s]"%jir_proj.name
             jir_issues = self.jir_client.search_issues('project=%s'%jir_proj.key)
@@ -209,7 +275,12 @@ class JiraToSprintlyImporter():
                     continue
 
                 print "Would create item here"
-                #spr_prod.create_item( convert_to_sprintly( jir_issue ) )
+                print "Would submit"
+                spr_issue_data = converter.convert_to_sprintly( jir_issue )
+                pprint.pprint( spr_issue_data ) 
+                if not (type(spr_issue_data['assigned_to']) is int):
+                    print "Assignee not found. invite required"
+                #spr_prod.create_item( spr_issue_data )
             #    print '\n'.join( [ str(item.raw)  for item in spr_prod.items() ] )
             #    if spr_prod.search_issue('tag=%s'%jissue.key):
             #        print "Converting issue %s:%s"%(jissue.key,jissue.title)
