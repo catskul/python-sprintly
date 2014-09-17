@@ -32,6 +32,9 @@ class Product:
     def items(self):
         return self.client.items(self.raw['id'])
 
+    def create_item(self,data):
+        return self.client.create_item(self.raw['id'],data)
+
 
 class Person:
     raw = None
@@ -96,6 +99,9 @@ class Client:
     def items(self, product_id):
         return self.api_get("products/%s/items.json"%product_id,Item)
         
+    def create_item(self, product_id, data):
+        return self.api_post("products/%s/items.json"%product_id,Item,data)
+
     def people(self, product_id): 
         return self.api_get("products/%s/people.json"%product_id,Person)
 
