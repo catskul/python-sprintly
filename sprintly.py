@@ -143,5 +143,10 @@ class Client:
     def create_person(self, product_id, data):
         return self.api_post("products/%s/people.json"%product_id,Person,data)
 
-    #def get_spr_user_email_map(self, product):
-    #    return { user['email'] : user for user in sprintly_users } 
+    def all_people(self,products=None):
+        products = products or self.products()
+        people = set()
+        for product in products:
+            people.update( product.people() )
+
+        return people
