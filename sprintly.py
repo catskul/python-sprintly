@@ -83,9 +83,9 @@ class Client:
     def __init__(self, basic_auth):
         self.basic_auth = basic_auth
     
-    def api_get(self, call, thing_type):
+    def api_get(self, call, thing_type, params=None):
         api_url = SPRINTLY_API_URI + '/' + call
-        req = requests.get(api_url, auth=self.basic_auth)
+        req = requests.get(api_url, auth=self.basic_auth, params=params)
         req.raise_for_status()
        
         response = json.loads(req.content) 
@@ -113,7 +113,20 @@ class Client:
         return self.api_post("products.json",Product,data)
 
     def items(self, product_id):
-        return self.api_get("products/%s/items.json"%product_id,Item)
+        params = {
+            'status' : 'backlog,in-progress,completed,accepted',
+            'limit'  : 100,
+            'offset' : 0,
+        }
+        data = []
+        count = 1
+        while count > 0:
+            res = self.api_get("products/%s/items.json"%product_id,Item,params=params)
+            params['offset'] += params['limit']
+            data += res
+            count = len( res )
+
+        return data
         
     def create_item(self, product_id, data):
         return self.api_post("products/%s/items.json"%product_id,Item,data)
