@@ -6,22 +6,27 @@ SPRINTLY_URI      = 'https://sprint.ly'
 SPRINTLY_API_PATH = '/api'
 SPRINTLY_API_URI  = SPRINTLY_URI + SPRINTLY_API_PATH
 
+class ApiThing:
+    def __repr__(self):
+        origin = '%s.%s'%(self.__module__,self.__class__.__name__)
+        values = ' '.join( [ '%s=[%s]'%(name,getattr(self,name)) for name in self.repr_list ] )
+        return '<%s: %s>'%(origin,values)
+    
+    def __hash__(self):
+        return hash( tuple( [ getattr( self, part ) for part in self.hash_parts ] ) )
+    
+    def __eq__(self,other):
+        return self.__hash__() == other.__hash__()
 
 
-class Product:
-    raw = None
-    client = None
-    repr_list = []
-
+class Product(ApiThing):
     def __init__(self, client, raw_dict):
         self.raw    = raw_dict
         self.client = client
-        self.repr_list = ['name']
+        self.repr_list = ['name','id']
+        self.hash_parts = ['id']
         for thing in self.raw:
             setattr( self, thing, raw_dict[thing] )  
-
-    def __repr__(self):
-        return '<%s.%s: name=%s>'%(self.__module__,self.__class__.__name__,self.raw['name'])
 
     def people(self):
         return self.client.people(self.raw['id'])
@@ -32,36 +37,47 @@ class Product:
     def items(self):
         return self.client.items(self.raw['id'])
 
-    def create_item(self,data):
-        return self.client.create_item(self.raw['id'],data)
+    def create_item(self,data,client=None):
+        client = client or self.client
+        return client.create_item(self.raw['id'],data)
 
 
-class Person:
-    raw = None
-    client = None
-
+class Person(ApiThing):
     def __init__(self, client, raw_dict):
         self.raw    = raw_dict
         self.client = client
+        self.repr_list = ['email','id']
+        self.hash_parts = ['id']
         for thing in self.raw:
             setattr( self, thing, raw_dict[thing] )  
 
-    def __repr__(self):
-        return '<%s.%s: email=%s>'%(self.__module__,self.__class__.__name__,self.raw['email'])
 
-
-class Item:
-    raw = None
-    client = None
-
+class Item(ApiThing):
     def __init__(self, client, raw_dict):
         self.raw    = raw_dict
         self.client = client
+        self.repr_list = ['title','number']
+        self.hash_parts = ['number']
         for thing in self.raw:
             setattr( self, thing, raw_dict[thing] )  
 
-    def __repr__(self):
-        return '<%s.%s: id=%s, title=%s>'%(self.__module__,self.__class__.__name__,self.raw['number'], self.raw['title'])
+    def comments(self):
+        return self.client.comments(self.product['id'],self.number)
+
+    def create_comment(self,data,client=None):
+        client = client or self.client
+        return client.create_comment(self.product['id'],self.number,data)
+
+
+class Comment(ApiThing):
+    def __init__(self, client, raw_dict):
+        self.raw    = raw_dict
+        self.client = client
+        self.repr_list = ['id']
+        self.hash_parts = ['id']
+        for thing in self.raw:
+            setattr( self, thing, raw_dict[thing] )  
+    
 
 class Client:
     def __init__(self, basic_auth):
@@ -101,6 +117,12 @@ class Client:
         
     def create_item(self, product_id, data):
         return self.api_post("products/%s/items.json"%product_id,Item,data)
+
+    def comments(self,product_id, item_number):
+        return self.api_get("products/%s/items/%s/comments.json"%(product_id,item_number),Comment)
+
+    def create_comment(self,product_id, item_number, data):
+        return self.api_post("products/%s/items/%s/comments.json"%(product_id,item_number),Comment,data)
 
     def people(self, product_id): 
         return self.api_get("products/%s/people.json"%product_id,Person)
