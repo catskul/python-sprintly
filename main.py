@@ -173,50 +173,97 @@ class JiraToSprintlyConverter():
         return { 'body' : body }
 
 class JiraToSprintlyImporter():
+    def __init__(self, jira_options=None, jira_auth=None, sprintly_auth=None, sprintly_auth_map=None, config_filename=None, dry_run=False):
+        self.config_filename = config_filename or 'config.json'
+        
+        self.config = defaultdict()
+        self.config['jira'] = {}
+        self.config['jira']['options'] = None
+        self.config['jira']['auth'] = None
+        self.config['sprintly'] = {}
+        self.config['sprintly']['auth'] = None
+        
+        self.config = self.read_config(self.config)
+        self.write_config(self.config)
 
-    def __init__(self, jira_auth, sprintly_auth):
-        self.jir_client  = jira.client.JIRA( options=jira_options, basic_auth=jira_auth )
-        self.spr_client  = sprintly.Client( sprintly_auth )
-        self.spr_clients = { auth[0] : sprintly.Client( auth ) for auth in sprintly_auths.iteritems() }
+        self.config['jira']['auth'] = jira_auth or self.config['jira']['auth']
+        self.config['sprintly']['auth'] = sprintly_auth or self.config['sprintly']['auth']
+        self.config['sprintly']['auth_map'] = sprintly_auth_map or self.config['sprintly']['auth_map']
 
-        self.config_file_name = 'config.json'
-        self.config = {}
+        self.generate_clients(dry_run=dry_run)
 
-    def write_config(self):
-        write_out_json( self.config_file_name, self.config )
 
-    def read_config(self):
-        json_file = open( self.config_file_name, 'r' )
-        config = json.load( json_file )
-        json_file.close()
+    def generate_clients(self,dry_run=False):
+        if self.config['jira']['options']:
+            if not self.config['jira']['auth']:
+                print "Need Jira auth."
+                jira_user = raw_input( "username: " )
+                jira_pass = raw_input( "pass: " )
+                self.config['jira']['auth'] = (jira_user, jira_pass)
 
-        return self.config
+            try:
+                self.jir_client  = jira.client.JIRA( options=self.config['jira']['options'], basic_auth=self.config['jira']['auth'] )
+            except jira.exceptions.JIRAError as e:
+                print "Failed to generate jira client, http error"
+  
+        else:
+            print "Failed to generate jira client"
+            print "Jira options: %s" % self.config['jira']['options']
+            print "Jira auth: %s" % self.config['jira']['auth']
+            raise BaseException( "Missing auth information" )
+          
+        if self.config['sprintly']['default_auth']: 
+            self.spr_client  = sprintly.Client( self.config['sprintly']['default_auth'], fake_create=dry_run)
+            self.spr_clients = { auth[0] : sprintly.Client( auth, fake_create=dry_run ) 
+                                    for auth in (self.config['sprintly']['auth_map'] or {}).iteritems() }
+        else: 
+            print "Failed to generate sprintly client"
+            print "Sprintly auth: %s" % self.config['sprintly']['default_auth']
+            raise BaseException( "Missing auth information" )
+
+    def write_config(self,config=None):
+        config = config or self.config
+        write_out_json( self.config_filename, config )
+
+
+    def read_config(self,config=None):
+        config = config or defaultdict()
+
+        try:
+            json_file = open( self.config_filename, 'r' )
+            config = recursive_update( config, json.load( json_file ) )
+            json_file.close()
+        except Exception as e: # catch all errors
+            print "Failed to read config file %s:" % self.config_filename, sys.exc_info()[0]
+            raise
+            pass
+
+        return config
+
 
     def build_mappings(self):
         jir_proj_lookoup = map_key( self.jir_client.projects(), get_key=lambda x:x.raw['name'] )
         spr_prod_lookoup = map_key( self.spr_client.products(), get_key=lambda x:x.raw['name'] )
         
         auto_map = guess_mapping( jir_proj_lookoup, spr_prod_lookoup )     
-        prod_map = dict(auto_map) #FIXME
+        prod_map = auto_map.update( self.config['product_map'] )
         
         print "Product map: "
         print json.dumps( prod_map, indent=4, separators=(',', ': ') )
         
-        self.config['product_map'] = prod_map
-        self.write_config()
-            
         spr_people = self.spr_client.all_people() # spr_prod.people()
         jir_users  = self.jir_client.get_all_users() # get_users(jir_proj.key)
 
         spr_person_map = map_key( spr_people, get_key=lambda x:x.email )
         jir_user_map  = map_key( jir_users,  get_key=lambda x:x.emailAddress )
 
-        person_map = guess_mapping( jir_user_map, spr_person_map )
+        #person_map = guess_mapping( jir_user_map, spr_person_map )
             
-        pprint.pprint( "People map: " )
-        print json.dumps( person_map, indent=4, separators=(',', ': ') )
+        #pprint.pprint( "People map: " )
+        #print json.dumps( person_map, indent=4, separators=(',', ': ') )
 
-        self.config['person_maps'] = {}
+        #self.config['person_map'] = person_map
+
         for (jir_proj_name,spr_prod_name) in prod_map.iteritems():
             print
             jir_proj = jir_proj_lookoup[jir_proj_name]
@@ -233,11 +280,6 @@ class JiraToSprintlyImporter():
                     prod_map[jir_proj_name] = None
                     print "marking for creation"
                 continue
-
-            spr_prod = spr_prod_lookoup[spr_prod_name]
-
-            self.config['person_maps'][jir_proj_name] = person_map
-            self.write_config()
 
         return self.config
             
