@@ -86,7 +86,6 @@ class JiraToSprintlyConverter():
     def __init__(self,jir_users, spr_people):
         self.jir_user_map   = map_key( jir_users,  get_key=lambda x:x.emailAddress )
         self.spr_person_map = map_key( spr_people, get_key=lambda x:x.email )
-
         self.jir_users      = map_key( jir_users, get_key=lambda x:x.key )
 
     def convert_issuetype(self,jira_issue):
@@ -377,9 +376,26 @@ class JiraToSprintlyImporter():
                         author_email       = jir_comment.author.emailAddress
                         comment_spr_client = self.spr_clients.get(author_email)
                         if not comment_spr_client:
-                            print "No client for %s, using default %s"%(author_email,sprintly_auth[0])
+                            print "No client for %s, using default %s"%(author_email,self.spr_client.basic_auth[0])
 
                         spr_comment_data   = converter.jira_comment_to_sprintly(jir_comment)
                         spr_comment        = spr_item.create_comment( spr_comment_data, client=comment_spr_client )
-                    #print spr_comment.raw
+
+
+if __name__ == '__main__':
+
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("projects", nargs='*',  help="JIRA project(s) to import")
+    #parser.add_argument("--all",               help="import all found JIRA projects")
+    #parser.add_argument("-c", "--config", metavar="config.json"  help="config file for processing projects")
+    #parser.add_argument("--write-config",      help="write out minimal config")
+    parser.add_argument("-d", "--dry", action="store_true", help="do not create or update items (no POST requests)")
+    #
+    args = parser.parse_args()
+
+    importer = JiraToSprintlyImporter(config_filename="config.json", dry_run=args.dry)
+    importer.do_import(args.projects)
+
+
 
