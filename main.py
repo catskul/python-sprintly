@@ -13,19 +13,6 @@ from collections import defaultdict
 
 jira_monkeypatch.monkeypatch_jira()
 
-***REMOVED***
-sprintly_auths = {
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-}
-
-***REMOVED***
-
-
 def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
