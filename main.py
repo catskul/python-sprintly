@@ -95,11 +95,12 @@ class JiraToSprintlyConverter():
 
         issuetype = jira_issue.raw['fields']['issuetype']['name']
         type_lookup = { 
-           'epic'        :'story',
-           'new feature' :'task',
            'bug'         :'defect',
-           'task'        :'task',
+           'epic'        :'story',
+           'improvement' :'task',
+           'new feature' :'task',
            'sub-task'    :'task',
+           'task'        :'task',
             #:'test',
         }
         
@@ -108,10 +109,13 @@ class JiraToSprintlyConverter():
     def convert_status(self, jira_issue):
         status = jira_issue.raw['fields']['status']['name']
         status_lookup = { 
-            'open'  : 'backlog',
-            'to do' : 'backlog',
-            'done'  : 'completed',
+            'closed'      : 'accepted',
+            'done'        : 'completed',
             'in progress' : 'in-progress',
+            'open'        : 'backlog',
+            'reopened'    : 'backlog',
+            'resolved'    : 'completed',
+            'to do'       : 'backlog',
             #:'in-progress',
             #:'completed',
             #:'accpted',
@@ -119,7 +123,11 @@ class JiraToSprintlyConverter():
         
         return status_lookup[status.lower()]
     
-    def lookup_person(self, email_address):
+    def lookup_person(self, assignee):
+        if assignee is None:
+            return None
+
+        email_address = assignee['emailAddress']
         try:
             return self.spr_person_map[email_address].id
         except KeyError:
@@ -148,7 +156,7 @@ class JiraToSprintlyConverter():
         spr_data['description'] = jira_fields['description']
         #spr_data['score']       
         spr_data['status']      = self.convert_status(   jira_issue   )
-        spr_data['assigned_to'] = self.lookup_person( jira_fields['assignee']['emailAddress'] )
+        spr_data['assigned_to'] = self.lookup_person( jira_fields['assignee'] )
         spr_data['tags']        = ','.join( [jira_issue.key, 'reporter-%s'%reporter] )
 
         return spr_data
