@@ -80,8 +80,9 @@ class Comment(ApiThing):
     
 
 class Client:
-    def __init__(self, basic_auth):
-        self.basic_auth = basic_auth
+    def __init__(self, basic_auth, fake_create=False):
+        self.basic_auth = tuple(basic_auth)
+        self.fake_create = fake_create
     
     def api_get(self, call, thing_type, params=None):
         api_url = SPRINTLY_API_URI + '/' + call
@@ -94,12 +95,20 @@ class Client:
         else:
             return thing_type(self, response);
 
-    def api_post(self, call, thing_type, data):
+    def api_post(self, call, thing_type, data, fake_data=None):
         api_url = SPRINTLY_API_URI + '/' + call
-        req = requests.post(api_url, auth=self.basic_auth, data=data)
-        req.raise_for_status()
         
-        response = json.loads(req.content)
+        if self.fake_create:
+            print "faking post request to [%s] and reflecting data back" % api_url
+            response = data
+            if fake_data:
+                response.update( fake_data )
+        else:
+            req = requests.post(api_url, auth=self.basic_auth, data=data)
+            req.raise_for_status()
+        
+            response = json.loads(req.content)
+
         if type(response) is list:
             return [ thing_type(self, item) for item in response ]
         else:
@@ -129,10 +138,17 @@ class Client:
         return data
         
     def create_item(self, product_id, data):
-        return self.api_post("products/%s/items.json"%product_id,Item,data)
+        fake_data = { 
+            'number' : -1,
+            'product' : { 'id' : product_id }
+        }
+        return self.api_post("products/%s/items.json"%product_id,Item,data,fake_data=fake_data)
 
     def comments(self,product_id, item_number):
-        return self.api_get("products/%s/items/%s/comments.json"%(product_id,item_number),Comment)
+        if item_number == -1 or item_number == -1:
+            return []
+        else:
+            return self.api_get("products/%s/items/%s/comments.json"%(product_id,item_number),Comment)
 
     def create_comment(self,product_id, item_number, data):
         return self.api_post("products/%s/items/%s/comments.json"%(product_id,item_number),Comment,data)
