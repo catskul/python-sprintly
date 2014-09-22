@@ -103,6 +103,7 @@ class Client:
             response = data
             if fake_data:
                 response.update( fake_data )
+            #print "reflected data: %s" % response
         else:
             req = requests.post(api_url, auth=self.basic_auth, data=data)
             req.raise_for_status()
