@@ -1,12 +1,15 @@
-import requests
-import json
-import jira
-import sprintly
-import jira_monkeypatch
 import distance
+import itertools
+import jira
+import jira_monkeypatch
+#import json
+import simplejson as json
 import pprint
 import re
-import itertools
+import requests
+import sprintly
+import sys
+from collections import defaultdict
 
 jira_monkeypatch.monkeypatch_jira()
 
