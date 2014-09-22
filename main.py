@@ -322,7 +322,7 @@ class JiraToSprintlyImporter():
                 spr_prod = self.spr_client.create_product( jir_proj_name )
             elif spr_prod_name not in spr_prod_lookoup:
                 print "Mapping for jira proj [%s] is [%s], but does not exist. Creating new Sprintly product"%(jir_proj_name,spr_prod_name)
-                spr_prod = self.spr_client.create_product( spr_proj_name )
+                spr_prod = self.spr_client.create_product( spr_prod_name )
             else:
                 print "Mapping for jira proj [%s] is [%s]"%(jir_proj_name,spr_prod_name) 
                 spr_prod = spr_prod_lookoup[spr_prod_name]
