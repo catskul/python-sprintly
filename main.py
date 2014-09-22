@@ -21,6 +21,14 @@ def grouper(iterable, n, fillvalue=None):
     return itertools.izip_longest(fillvalue=fillvalue, *args)
 
 
+def recursive_update(a, b):
+    "merges b into a"
+    for key in b:
+        if key in a and isinstance(a[key], dict) and isinstance(b[key], dict):
+            recursive_update(a[key], b[key])
+        else:
+            a[key] = b[key]
+    return a
 
 def guess_mapping( set_a, set_b, dist_algo=distance.jaccard ):
     a_to_b          = {}
