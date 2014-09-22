@@ -320,6 +320,7 @@ class JiraToSprintlyImporter():
             if spr_prod_name is None:
                 print "Mapping for jira proj [{name}] is Null. Creating new Sprintly product named [{name}]".format(name=jir_proj_name)
                 spr_prod = self.spr_client.create_product( jir_proj_name )
+                print "Product response: %s" % spr_prod
             elif spr_prod_name not in spr_prod_lookoup:
                 print "Mapping for jira proj [%s] is [%s], but does not exist. Creating new Sprintly product"%(jir_proj_name,spr_prod_name)
                 spr_prod = self.spr_client.create_product( spr_prod_name )
@@ -339,7 +340,8 @@ class JiraToSprintlyImporter():
         
                 jir_issue_tag = jir_issue.key.lower()
                 if spr_tag_map.has_key( jir_issue_tag ):
-                    assert( len(spr_tag_map[jir_issue_tag]) == 1 )
+                    if not len(spr_tag_map[jir_issue_tag]) == 1:
+                        print "ERROR: duplicate items according to tag [%s] : %s" % (jir_issue_tag,spr_tag_map[jir_issue_tag])
                     spr_item = spr_tag_map[jir_issue_tag][0]
                     print "Issue [%s] exists, using exsiting item"%jir_issue.key
 
@@ -360,7 +362,7 @@ class JiraToSprintlyImporter():
                     author_email = jir_issue.fields.creator.emailAddress
                     item_spr_client = self.spr_clients.get(author_email)
                     if not item_spr_client:
-                        print "No client for %s, using default %s"%(author_email,sprintly_auth[0])
+                        print "No client for [%s], using default [%s]"%(author_email,self.spr_client.basic_auth[0])
 
                     spr_item =  spr_prod.create_item(spr_item_data, client=item_spr_client)
 
