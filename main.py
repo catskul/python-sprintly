@@ -14,10 +14,12 @@ from collections import defaultdict
 jira_monkeypatch.monkeypatch_jira()
 
 def grouper(iterable, n, fillvalue=None):
-        "Collect data into fixed-length chunks or blocks"
-        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
-        args = [iter(iterable)] * n
-        return itertools.izip_longest(fillvalue=fillvalue, *args)
+    # taken from itertools recipes
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return itertools.izip_longest(fillvalue=fillvalue, *args)
+
 
 
 def guess_mapping( set_a, set_b, dist_algo=distance.jaccard ):
