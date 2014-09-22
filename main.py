@@ -76,8 +76,8 @@ def multimap_multikey( collection, get_keys ):
     return key_map
 
 
-def write_out_json( file_name, data_dict ):
-    json_file = open( file_name, 'w+' )
+def write_out_json( filename, data_dict ):
+    json_file = open( filename, 'w+' )
     json_file.write( json.dumps( data_dict, indent=4, separators=(',', ': ') ) )
     json_file.close()
 
