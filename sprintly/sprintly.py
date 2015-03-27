@@ -99,6 +99,12 @@ class Item(ApiThing):
             self.client.comments(self.product['id'], self.number),
             Comment, self.client, product_id=self.product['id'], item_number=self.number
         )
+    
+    def comment(self, id):
+        return wrap(
+            self.client.comment(self.product['id'], self.number, id),
+            Comment, self.client, product_id=self.product['id'], item_number=self.number
+        )
 
     def create_comment(self, data, client=None):
         client = client or self.client
@@ -246,6 +252,9 @@ class Client:
             return []
         else:
             return self.api_get("products/%s/items/%s/comments.json" % (product_id, item_number))
+    
+    def comment(self, product_id, item_number, comment_id):
+        return self.api_get("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_id))
 
     def create_comment(self, product_id, item_number, data):
         return self.api_post("products/%s/items/%s/comments.json" % (product_id, item_number), data)
