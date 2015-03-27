@@ -14,7 +14,6 @@ setup(
     author=sprintly.__author__,
     url='https://github.com/catskul/python-sprintly',
     packages=find_packages(),
-    download_url='http://pypi.python.org/pypi/sprintly/',
     keywords='sprintly api wrapper',
     zip_safe=True,
     install_requires=reqs,
