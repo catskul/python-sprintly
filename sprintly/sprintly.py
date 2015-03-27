@@ -258,12 +258,12 @@ class Client:
 
     def create_comment(self, product_id, item_number, data):
         return self.api_post("products/%s/items/%s/comments.json" % (product_id, item_number), data)
-
-    def update_comment(self, product_id, item_number, comment_number, data):
-        return self.api_post("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_number), data)
-
-    def delete_comment(self, product_id, item_number, comment_number):
-        return self.api_delete("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_number))
+# API is broken, these don't work
+#    def update_comment(self, product_id, item_number, comment_id, data):
+#        return self.api_post("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_id), data)
+#
+#    def delete_comment(self, product_id, item_number, comment_id):
+#        return self.api_delete("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_id))
 
     def people(self, product_id):
         return self.api_get("products/%s/people.json" % product_id)
