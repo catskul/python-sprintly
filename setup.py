@@ -11,7 +11,6 @@ setup(
     name='sprintly',
     version=sprintly.__version__,
     description='API wrapper for Sprint.ly',
-    long_description=open('README.rst').read(),
     author=sprintly.__author__,
     url='https://github.com/catskul/python-sprintly',
     packages=find_packages(),
