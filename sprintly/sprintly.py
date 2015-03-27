@@ -22,6 +22,9 @@ class Account:
     def products(self):
         return wrap(self.client.products(), Product, self.client)
 
+    def product(self, id):
+        return wrap(self.client.product(id), Product, self.client)
+
     def all_people(self, products=None):
         products = products or self.products()
         people = set()
@@ -99,7 +102,7 @@ class Item(ApiThing):
             self.client.comments(self.product['id'], self.number),
             Comment, self.client, product_id=self.product['id'], item_number=self.number
         )
-    
+
     def comment(self, id):
         return wrap(
             self.client.comment(self.product['id'], self.number, id),
@@ -209,6 +212,9 @@ class Client:
     def products(self):
         return self.api_get("products.json")
 
+    def product(self, id):
+        return self.api_get("products/%s.json" % id)
+
     def create_product(self, name):
         data = {'name': name}
         return self.api_post("products.json", data)
@@ -252,7 +258,7 @@ class Client:
             return []
         else:
             return self.api_get("products/%s/items/%s/comments.json" % (product_id, item_number))
-    
+
     def comment(self, product_id, item_number, comment_id):
         return self.api_get("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_id))
 
