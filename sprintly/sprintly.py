@@ -262,8 +262,8 @@ class Client:
     def comment(self, product_id, item_number, comment_id):
         return self.api_get("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_id))
 
-    def create_comment(self, product_id, item_number, data):
-        return self.api_post("products/%s/items/%s/comments.json" % (product_id, item_number), data)
+    def create_comment(self, product_id, item_number, body):
+        return self.api_post("products/%s/items/%s/comments.json" % (product_id, item_number), { 'body' : body })
 # API is broken, these don't work
 #    def update_comment(self, product_id, item_number, comment_id, data):
 #        return self.api_post("products/%s/items/%s/comments/%s.json" % (product_id, item_number, comment_id), data)
