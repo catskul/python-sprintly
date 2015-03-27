@@ -95,9 +95,10 @@ class Item(ApiThing):
         self.update_with(self.raw)
 
     def comments(self):
-        return wrap(self.client.comments(self.product['id'], self.number),
-                    Comment, self.client, product_id=self.product['id'], item_number=self.number
-                    )
+        return wrap(
+            self.client.comments(self.product['id'], self.number),
+            Comment, self.client, product_id=self.product['id'], item_number=self.number
+        )
 
     def create_comment(self, data, client=None):
         client = client or self.client
