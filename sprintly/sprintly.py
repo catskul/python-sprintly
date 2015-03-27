@@ -63,6 +63,9 @@ class Product(ApiThing):
     def items(self,status=None):
         return wrap( self.client.items(self.raw['id'],status), Item, self.client )
 
+    def item(self,item_number):
+        return wrap( self.client.item(self.raw['id'],item_number), Item, self.client )
+
     def create_item(self,data,client=None):
         client = client or self.client
         return wrap( client.create_item(self.raw['id'],data), Item, self.client )
@@ -197,8 +200,8 @@ class Client:
 
         return data
         
-    def update_item(self, product_id, item_id, data):
-        return self.api_post("products/%s/items/%s.json"%(product_id,item_id),data)
+    def item(self, product_id, item_number):
+        return self.api_get("products/%s/items/%s.json"%(product_id,item_number))
 
     def create_item(self, product_id, data):
         fake_data = { 
@@ -207,8 +210,11 @@ class Client:
         }
         return self.api_post("products/%s/items.json"%product_id,data,fake_data=fake_data)
 
-    def delete_item(self, product_id, item_id):
-        return self.api_delete("products/%s/items/%s.json"%(product_id,item_id))
+    def update_item(self, product_id, item_number, data):
+        return self.api_post("products/%s/items/%s.json"%(product_id,item_number),data)
+
+    def delete_item(self, product_id, item_number):
+        return self.api_delete("products/%s/items/%s.json"%(product_id,item_number))
 
     def comments(self,product_id, item_number):
         if item_number == -1 or item_number == -1:
@@ -218,6 +224,12 @@ class Client:
 
     def create_comment(self,product_id, item_number, data):
         return self.api_post("products/%s/items/%s/comments.json"%(product_id,item_number),data)
+
+    def update_comment(self,product_id, item_number, comment_number, data):
+        return self.api_post("products/%s/items/%s/comments/%s.json"%(product_id,item_number,comment_number),data)
+
+    def delete_comment(self,product_id, item_number, comment_number):
+        return self.api_delete("products/%s/items/%s/comments/%s.json"%(product_id,item_number,comment_number))
 
     def people(self, product_id): 
         return self.api_get("products/%s/people.json"%product_id)
