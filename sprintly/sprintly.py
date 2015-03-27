@@ -7,11 +7,11 @@ SPRINTLY_API_PATH = '/api'
 SPRINTLY_API_URI  = SPRINTLY_URI + SPRINTLY_API_PATH
 
 
-def wrap(data,thing_type, client):
+def wrap(data, thing_type, client, **kwargs):
     if type(data) is list:
-        return [ thing_type(client, item) for item in data ]
+        return [ thing_type(client, item, **kwargs) for item in data ]
     else:
-        return thing_type(cleint, data)
+        return thing_type(client, data, **kwargs)
 
 
 class Account:
@@ -89,11 +89,16 @@ class Item(ApiThing):
         self.update_with( self.raw )
 
     def comments(self):
-        return wrap( self.client.comments(self.product['id'],self.number), Comment, self.client )
+        return wrap( self.client.comments(self.product['id'],self.number),
+            Comment, self.client, product_id=self.product['id'], item_number=self.number 
+        )
 
     def create_comment(self,data,client=None):
         client = client or self.client
-        return wrap( client.create_comment(self.product['id'],self.number,data), Comment, self.client )
+        return wrap( 
+            client.create_comment(self.product['id'],self.number,data), 
+            Comment, self.client, product_id=self.product['id'], item_number=self.number 
+        )
 
     def save(self):
         fields = [
@@ -129,7 +134,9 @@ class Item(ApiThing):
 
 
 class Comment(ApiThing):
-    def __init__(self, client, raw_dict):
+    def __init__(self, client, raw_dict, **kwargs):
+        self.product_id = kwargs['product_id']
+        self.item_number = kwargs['item_number']
         self.raw    = raw_dict
         self.client = client
         self.repr_list = ['id']
