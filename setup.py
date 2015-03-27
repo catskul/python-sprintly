@@ -17,6 +17,7 @@ setup(
     keywords='sprintly api wrapper',
     zip_safe=True,
     install_requires=reqs,
+    scripts=['scripts/sprintly-cli'],
     py_modules=['sprintly'],
     classifiers=[
         'Development Status :: 3 - Alpha'

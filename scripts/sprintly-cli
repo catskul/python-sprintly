@@ -1,0 +1,14 @@
+#!python
+import sys
+import json
+from sprintly import Client
+
+def main(argv=None):
+    if not argv:
+        argv = sys.argv
+
+    print "%s" % argv[1]
+    print json.dumps( eval( "%s" % argv[1] ), sort_keys=True, indent=4, separators=(',', ': '))
+
+if __name__ == "__main__":
+    sys.exit(main())
