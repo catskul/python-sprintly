@@ -144,6 +144,15 @@ class Comment(ApiThing):
         self.hash_parts = ['id']
         self.update_with( self.raw ) 
 
+# Doesn't currently work in the API
+#    def save(self):
+#        fields = [ 'body' ]
+#        data = { field : getattr( self, field ) for field in fields }
+#        return_data = self.client.update_comment( self.product_id, self.item_number, self.id, data )
+#        self.raw = return_data
+#        self.update_with( self.raw )
+#        return self
+
 class Client:
     def __init__(self, basic_auth, fake_create=False):
         self.basic_auth = tuple(basic_auth)
