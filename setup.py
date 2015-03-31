@@ -2,16 +2,16 @@
 from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
-import sprintly.pkg_info
+execfile('sprintly/pkg_info.py')
 
 install_reqs = parse_requirements('requirements.txt')
 reqs = [str(ir.req) for ir in install_reqs]
 
 setup(
     name='sprintly',
-    version=sprintly.pkg_info.__version__,
+    version=__version__,
     description='API wrapper for Sprint.ly',
-    author=sprintly.pkg_info.__author__,
+    author=__author__,
     url='https://github.com/catskul/python-sprintly',
     packages=find_packages(),
     keywords='sprintly api wrapper',
