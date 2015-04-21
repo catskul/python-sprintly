@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-from pip.req import parse_requirements
+import pip.req
+import pip.download
+
 from setuptools import setup, find_packages
 
 execfile('sprintly/pkg_info.py')
 
-install_reqs = parse_requirements('requirements.txt')
+install_reqs = pip.req.parse_requirements('requirements.txt', session=pip.download.PipSession())
 reqs = [str(ir.req) for ir in install_reqs]
 
 setup(
